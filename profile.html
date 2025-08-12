@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChessSol - Profile</title>
+    <link rel="stylesheet" href="assets/css/styles.css">
+    <script src="assets/js/main.js" defer></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="profile-header">
+                <a href="lobby.html" class="btn-icon">← Lobby</a>
+                <h1>Your Profile</h1>
+                <div class="wallet-info">
+                    <span id="wallet-address"></span>
+                </div>
+            </div>
+        </header>
+
+        <main>
+            <div class="profile-container">
+                <div class="profile-card">
+                    <div class="profile-avatar">👤</div>
+                    <h2 id="profile-username">Player</h2>
+                    <p id="profile-wallet"></p>
+                </div>
+
+                <div class="profile-stats">
+                    <div class="stat-card">
+                        <h3>Games Played</h3>
+                        <p id="games-played">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Wins</h3>
+                        <p id="wins">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Losses</h3>
+                        <p id="losses">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Draws</h3>
+                        <p id="draws">0</p>
+                    </div>
+                </div>
+
+                <div class="profile-actions">
+                    <button id="disconnect-wallet" class="btn-danger">Disconnect Wallet</button>
+                    <button id="switch-wallet" class="btn-secondary">Switch Wallet</button>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>ChessSol - Blockchain Chess Platform</p>
+        </footer>
+    </div>
+</body>
+</html>

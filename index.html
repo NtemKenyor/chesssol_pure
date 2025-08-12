@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChessSol - Connect Wallet</title>
+    <link rel="stylesheet" href="assets/css/styles.css">
+    <script src="assets/js/wallet.js" defer></script>
+    <script src="assets/js/main.js" defer></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <img src="assets/img/logo.png" alt="ChessSol Logo" class="logo">
+            <h1>Welcome to ChessSol</h1>
+        </header>
+
+        <main class="connect-wallet-page">
+            <div class="wallet-connect-card">
+                <h2>Connect Your Wallet</h2>
+                <p>To start playing chess on the blockchain, connect your wallet or create a demo wallet.</p>
+                
+                <div class="wallet-options">
+                    <button id="connect-wallet-btn" class="btn-primary">Connect Wallet</button>
+                    <button id="demo-wallet-btn" class="btn-secondary">Use Demo Wallet</button>
+                </div>
+
+                <div id="wallet-connected" class="hidden">
+                    <p>Wallet connected: <span id="connected-address"></span></p>
+                    <button id="proceed-btn" class="btn-primary">Proceed to App</button>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>ChessSol - Blockchain Chess Platform</p>
+        </footer>
+    </div>
+</body>
+</html>

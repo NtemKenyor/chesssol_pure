@@ -1,0 +1,1465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChessSol - Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+
+        .game-container {
+            display: flex;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            gap: 20px;
+            min-height: 100vh;
+        }
+
+        .board-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .player-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 480px;
+            background: rgba(0,0,0,0.3);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+
+        .player-info.top {
+            flex-direction: row-reverse;
+        }
+
+        .player-name {
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .player-time {
+            font-family: 'Courier New', monospace;
+            font-size: 18px;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+
+        .player-time.low {
+            color: #f44336;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .chess-board {
+            display: grid;
+            grid-template-columns: repeat(8, 60px);
+            grid-template-rows: repeat(8, 60px);
+            border: 4px solid #333;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            background: #f0d9b5;
+        }
+
+        .square {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s ease;
+        }
+
+        .square:nth-child(odd) {
+            background-color: #f0d9b5;
+        }
+
+        .square:nth-child(even) {
+            background-color: #b58863;
+        }
+
+        .square.light {
+            background-color: #f0d9b5;
+        }
+
+        .square.dark {
+            background-color: #b58863;
+        }
+
+        /* Add colors for white and black pieces */
+        .square .white-piece {
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+        }
+
+        .square .black-piece {
+            color: black;
+            text-shadow: 1px 1px 2px rgba(255,255,255,0.3);
+        }
+
+        .square.selected {
+            background-color: #ffff99 !important;
+            box-shadow: inset 0 0 0 3px #ff6b35;
+        }
+
+        .square.possible-move {
+            position: relative;
+        }
+
+        .square.possible-move::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-color: rgba(0, 255, 0, 0.6);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .square.capture-move::after {
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 0, 0, 0.3);
+            border-radius: 0;
+            border: 3px solid #ff0000;
+        }
+
+        .square.last-move {
+            background-color: rgba(255, 255, 0, 0.4) !important;
+        }
+
+        .square.in-check {
+            background-color: rgba(255, 0, 0, 0.5) !important;
+        }
+
+        .side-panel {
+            width: 300px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .game-controls {
+            background: rgba(0,0,0,0.3);
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .game-controls h3 {
+            margin-bottom: 15px;
+            color: #fff;
+        }
+
+        .control-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .btn-danger {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .btn-warning {
+            background-color: #ffc107;
+            color: #212529;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .chat-section {
+            background: rgba(0,0,0,0.3);
+            padding: 20px;
+            border-radius: 10px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-messages {
+            flex: 1;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 10px;
+            margin-bottom: 10px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 5px;
+        }
+
+        .chat-message {
+            margin-bottom: 8px;
+            padding: 5px;
+            border-radius: 3px;
+            background: rgba(255,255,255,0.1);
+        }
+
+        .chat-message.server {
+            background: rgba(255,255,0,0.2);
+            font-style: italic;
+        }
+
+        .chat-input {
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 4px;
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+
+        .chat-input input::placeholder {
+            color: rgba(255,255,255,0.6);
+        }
+
+        .status-display {
+            background: rgba(0,0,0,0.3);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .status-display h4 {
+            margin-bottom: 10px;
+        }
+
+        .connection-status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .connection-status.connected {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .connection-status.disconnected {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .connection-status.connecting {
+            background-color: #ffc107;
+            color: #212529;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 15% auto;
+            padding: 20px;
+            border-radius: 10px;
+            width: 80%;
+            max-width: 500px;
+            text-align: center;
+            color: white;
+        }
+
+        .modal h2 {
+            margin-bottom: 20px;
+        }
+
+        .modal p {
+            margin-bottom: 20px;
+            font-size: 18px;
+        }
+
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 18px;
+            color: #fff;
+        }
+
+        .spinner {
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top: 3px solid #fff;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .notification-area {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1001;
+        }
+
+        .notification {
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            max-width: 300px;
+        }
+
+        .notification.error {
+            background: rgba(220, 53, 69, 0.9);
+        }
+
+        .notification.success {
+            background: rgba(40, 167, 69, 0.9);
+        }
+
+        .notation-display {
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            color: #ccc;
+        }
+
+        /* Debug info */
+        .debug-info {
+            background: rgba(0,0,0,0.5);
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+
+        @media (max-width: 768px) {
+            .game-container {
+                flex-direction: column;
+                padding: 10px;
+            }
+
+            .side-panel {
+                width: 100%;
+                order: -1;
+            }
+
+            .chess-board {
+                grid-template-columns: repeat(8, 45px);
+                grid-template-rows: repeat(8, 45px);
+            }
+
+            .square {
+                font-size: 28px;
+            }
+
+            .player-info {
+                width: 100%;
+                max-width: 360px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="board-section">
+            <!-- Top player info -->
+            <div class="player-info top" id="top-player">
+                <div class="player-name" id="top-player-name">Opponent</div>
+                <div class="player-time" id="top-player-time">10:00</div>
+            </div>
+
+            <!-- Chess board -->
+            <div class="chess-board" id="chess-board">
+                <!-- Board squares will be generated by JavaScript -->
+            </div>
+
+            <!-- Bottom player info -->
+            <div class="player-info" id="bottom-player">
+                <div class="player-name" id="bottom-player-name">You</div>
+                <div class="player-time" id="bottom-player-time">10:00</div>
+            </div>
+        </div>
+
+        <div class="side-panel">
+            <div class="status-display">
+                <h4>Connection Status</h4>
+                <span class="connection-status connecting" id="connection-status">Connecting...</span>
+                <div class="notation-display" id="current-turn" style="margin-top: 10px;">
+                    White to move
+                </div>
+                <!-- Debug info -->
+                <div class="debug-info" id="debug-info">
+                    Player Color: <span id="debug-player-color">-</span><br>
+                    Current Turn: <span id="debug-current-turn">-</span><br>
+                    Is My Turn: <span id="debug-is-my-turn">-</span>
+                </div>
+            </div>
+
+            <div class="game-controls">
+                <h3>Game Controls</h3>
+                <div class="control-buttons">
+                    <button class="btn btn-danger" id="resign-btn">Resign</button>
+                    <button class="btn btn-warning" id="draw-btn">Offer Draw</button>
+                    <button class="btn btn-primary" id="checkmate-btn" style="display: none;">Claim Checkmate</button>
+                </div>
+            </div>
+
+            <div class="chat-section">
+                <h3>Chat</h3>
+                <div class="chat-messages" id="chat-messages"></div>
+                <div class="chat-input">
+                    <input type="text" id="chat-input" placeholder="Type a message..." maxlength="100">
+                    <button class="btn btn-primary" id="send-chat">Send</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game End Modal -->
+    <div id="game-end-modal" class="modal">
+        <div class="modal-content">
+            <h2 id="game-end-title">Game Over</h2>
+            <p id="game-end-message"></p>
+            <button class="btn btn-primary" id="return-to-lobby-btn">Return to Lobby</button>
+        </div>
+    </div>
+
+    <!-- Loading Modal -->
+    <div id="loading-modal" class="modal" style="display: block;">
+        <div class="modal-content">
+            <div class="loading">
+                <div class="spinner"></div>
+                Connecting to game...
+            </div>
+        </div>
+    </div>
+
+    <script src="main.js"></script>
+    <script>
+        // Chess piece Unicode symbols with color mapping
+        const PIECES = {
+            'K': '♔', 'Q': '♕', 'R': '♖', 'B': '♗', 'N': '♘', 'P': '♙',
+            'k': '♚', 'q': '♛', 'r': '♜', 'b': '♝', 'n': '♞', 'p': '♟'
+        };
+
+        // Map pieces to their colors
+        const WHITE_PIECES = ['K', 'Q', 'R', 'B', 'N', 'P'];
+        const BLACK_PIECES = ['k', 'q', 'r', 'b', 'n', 'p'];
+
+        // Game state
+        let gameState = {
+            gameId: null,
+            walletAddress: null,
+            playerColor: null,
+            currentFen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+            currentTurn: 'w',
+            isMyTurn: false,
+            selectedSquare: null,
+            possibleMoves: [],
+            lastMove: null,
+            whiteTime: 600, // 10 minutes in seconds
+            blackTime: 600,
+            timerInterval: null,
+            status: 'waiting'
+        };
+
+        let socket = null;
+
+        // Initialize game
+        document.addEventListener('DOMContentLoaded', () => {
+            gameState.walletAddress = getCookie('walletAddress');
+            gameState.gameId = new URLSearchParams(window.location.search).get('gameId');
+
+            if (!gameState.walletAddress || !gameState.gameId) {
+                showNotification('Missing game information. Redirecting to lobby...', 'error');
+                setTimeout(() => window.location.href = 'lobby.html', 2000);
+                return;
+            }
+
+            initializeBoard();
+            connectToGame();
+            setupEventListeners();
+        });
+
+        // Connect to WebSocket and reconnect to game
+        function connectToGame() {
+            const wsUrl = window.location.hostname === 'localhost' 
+                ? 'ws://localhost:3000/chesssol/backend/ws'
+                : 'wss://chesssol.com/api/chesssol/backend/ws';
+
+            socket = new WebSocket(wsUrl);
+
+            socket.onopen = () => {
+                console.log('WebSocket connected');
+                updateConnectionStatus('connected');
+                
+                // Send reconnect message
+                const reconnectMessage = {
+                    type: 'reconnect',
+                    gameId: gameState.gameId,
+                    walletAddress: gameState.walletAddress
+                };
+                
+                socket.send(JSON.stringify(reconnectMessage));
+            };
+
+            socket.onmessage = (event) => {
+                const message = JSON.parse(event.data);
+                handleWebSocketMessage(message);
+            };
+
+            socket.onclose = () => {
+                console.log('WebSocket disconnected');
+                updateConnectionStatus('disconnected');
+                // Attempt to reconnect after 3 seconds
+                setTimeout(connectToGame, 3000);
+            };
+
+            socket.onerror = (error) => {
+                console.error('WebSocket error:', error);
+                updateConnectionStatus('disconnected');
+            };
+        }
+
+        // Handle incoming WebSocket messages
+        function handleWebSocketMessage(message) {
+            console.log('Received WebSocket message:', message);
+
+            switch (message.type) {
+                case 'reconnected':
+                    handleReconnection(message);
+                    break;
+                case 'gameState':
+                    handleGameState(message);
+                    break;
+                case 'move':
+                    handleMove(message);
+                    break;
+                case 'chat':
+                    handleChat(message);
+                    break;
+                case 'gameEnded':
+                    handleGameEnd(message);
+                    break;
+                case 'error':
+                    console.error('Server error:', message.message);
+                    showNotification(`Server error: ${message.message}`, 'error');
+                    break;
+                default:
+                    console.log('Unknown message type:', message.type);
+                    break;
+            }
+        }
+
+        // Handle successful reconnection
+        function handleReconnection(message) {
+            gameState.currentFen = message.fen;
+            gameState.currentTurn = message.turn;
+            gameState.status = message.status;
+
+            if(gameState.color){ 
+                gameState.playerColor = gameState.color;
+            }
+            
+            // Hide loading modal
+            document.getElementById('loading-modal').style.display = 'none';
+            
+            // Request full game state to get more details
+            socket.send(JSON.stringify({
+                type: 'stateGame',
+                gameId: gameState.gameId
+            }));
+            
+            showNotification('Successfully reconnected to game!', 'success');
+        }
+
+        // Handle game state update
+        function handleGameState(message) {
+            try {
+                const game = message.game;
+                
+                console.log('full message: ', message);
+                console.log('Game state received:', game);
+                
+                if (game.chess && game.chess._board) {
+                    gameState.currentFen = gameState.currentFen || 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+                    gameState.currentTurn = game.chess._turn;
+                    console.log('Using FEN:', gameState.currentFen);
+                }
+                
+                // Get playerColor from URL
+                const urlParams = new URLSearchParams(window.location.search);
+                const playerColorParam = urlParams.get('playerColor');
+
+                if ( (playerColorParam === 'w' || playerColorParam === 'b') && !gameState.playerColor ) {
+                    gameState.playerColor = playerColorParam;
+                    console.log('Player color set from URL param:', gameState.playerColor);
+                } else {
+                    // Fallback default
+                    gameState.playerColor = 'w';
+                    console.warn('Invalid or missing playerColor URL param, defaulting to white');
+                }
+
+                // Set game status
+                if (game.status === 'active' || game.status === 'joined') {
+                    gameState.status = 'active';
+                }
+                
+                // Set initial times
+                if (game.creator && game.opponent) {
+                    if (gameState.playerColor === game.creator.side) {
+                        gameState.whiteTime = game.creator.side === 'w' ? game.creator.timeLeft / 1000 : game.opponent.timeLeft / 1000;
+                        gameState.blackTime = game.creator.side === 'b' ? game.creator.timeLeft / 1000 : game.opponent.timeLeft / 1000;
+                    } else {
+                        gameState.whiteTime = game.opponent.side === 'w' ? game.opponent.timeLeft / 1000 : game.creator.timeLeft / 1000;
+                        gameState.blackTime = game.opponent.side === 'b' ? game.opponent.timeLeft / 1000 : game.creator.timeLeft / 1000;
+                    }
+                } else {
+                    const durationInSeconds = Math.floor((game.duration || 600000) / 1000);
+                    gameState.whiteTime = game.whiteTime || durationInSeconds;
+                    gameState.blackTime = game.blackTime || durationInSeconds;
+                }
+                
+                // Determine if it's player's turn
+                gameState.isMyTurn = gameState.currentTurn === gameState.playerColor;
+                
+                console.log('Game state updated:', {
+                    playerColor: gameState.playerColor,
+                    currentTurn: gameState.currentTurn,
+                    isMyTurn: gameState.isMyTurn,
+                    status: gameState.status
+                });
+                
+                updateBoard();
+                updateTimers();
+                updateTurnDisplay();
+                updatePlayerNames();
+                updateDebugInfo();
+                
+                if (gameState.status === 'active') {
+                    startTimer();
+                }
+                
+            } catch (error) {
+                console.error('Error handling game state:', error);
+                showNotification('Error processing game state', 'error');
+            }
+        }
+
+        // Update debug info display
+        function updateDebugInfo() {
+            document.getElementById('debug-player-color').textContent = gameState.playerColor || 'undefined';
+            document.getElementById('debug-current-turn').textContent = gameState.currentTurn || 'undefined';
+            document.getElementById('debug-is-my-turn').textContent = gameState.isMyTurn ? 'YES' : 'NO';
+        }
+
+        // Handle move from server
+        function handleMove(message) {
+            console.log('Move received from server:', message);
+            
+            if (message.valid !== false) {
+                gameState.currentFen = message.fen;
+                gameState.currentTurn = message.turn;
+                gameState.isMyTurn = gameState.currentTurn === gameState.playerColor;
+                gameState.lastMove = message.lastMove;
+                
+                updateBoard();
+                updateTurnDisplay();
+                updateDebugInfo();
+                clearSelection();
+                
+                const moveNotification = gameState.isMyTurn ? 'Your move was played' : `Opponent played: ${message.lastMove || 'a move'}`;
+                showNotification(moveNotification, 'success');
+                
+                if (message.whiteTime !== undefined) gameState.whiteTime = message.whiteTime;
+                if (message.blackTime !== undefined) gameState.blackTime = message.blackTime;
+                updateTimers();
+                
+            } else {
+                showNotification('Invalid move!', 'error');
+                clearSelection();
+            }
+        }
+
+        // Handle chat message
+        function handleChat(message) {
+            const chatMessages = document.getElementById('chat-messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `chat-message ${message.sender === 'Server' ? 'server' : ''}`;
+            messageDiv.innerHTML = `<strong>${message.sender}:</strong> ${message.message}`;
+            
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Handle game end
+        function handleGameEnd(message) {
+            clearInterval(gameState.timerInterval);
+            
+            const modal = document.getElementById('game-end-modal');
+            const title = document.getElementById('game-end-title');
+            const messageText = document.getElementById('game-end-message');
+            
+            if (message.winner === null) {
+                title.textContent = 'Game Drawn';
+                messageText.textContent = `Game ended in a draw (${message.reason})`;
+            } else {
+                const isWinner = message.winner === gameState.walletAddress;
+                title.textContent = isWinner ? 'Victory!' : 'Defeat';
+                messageText.textContent = `Game ended by ${message.reason}`;
+            }
+            
+            modal.style.display = 'block';
+        }
+
+        // Initialize the chess board
+        function initializeBoard() {
+            const board = document.getElementById('chess-board');
+            board.innerHTML = '';
+            
+            for (let row = 0; row < 8; row++) {
+                for (let col = 0; col < 8; col++) {
+                    const square = document.createElement('div');
+                    square.className = `square ${(row + col) % 2 === 0 ? 'light' : 'dark'}`;
+                    square.dataset.row = row;
+                    square.dataset.col = col;
+                    square.addEventListener('click', handleSquareClickEnhanced);
+                    board.appendChild(square);
+                }
+            }
+        }
+
+        // Update board with current position and piece colors
+        function updateBoard() {
+            const board = document.getElementById('chess-board');
+            const squares = board.querySelectorAll('.square');
+            
+            const pieces = parseFEN(gameState.currentFen);
+            
+            squares.forEach((square, index) => {
+                const row = Math.floor(index / 8);
+                const col = index % 8;
+                
+                // Flip board if playing as black
+                const actualRow = gameState.playerColor === 'b' ? 7 - row : row;
+                const actualCol = gameState.playerColor === 'b' ? 7 - col : col;
+                
+                const pieceChar = pieces[actualRow][actualCol];
+                
+                // Clear previous content and styling
+                square.innerHTML = '';
+                square.classList.remove('last-move', 'in-check', 'selected', 'possible-move', 'capture-move');
+                
+                if (pieceChar && PIECES[pieceChar]) {
+                    const pieceSpan = document.createElement('span');
+                    pieceSpan.textContent = PIECES[pieceChar];
+                    
+                    // Add color class based on piece type
+                    if (WHITE_PIECES.includes(pieceChar)) {
+                        pieceSpan.className = 'white-piece';
+                    } else if (BLACK_PIECES.includes(pieceChar)) {
+                        pieceSpan.className = 'black-piece';
+                    }
+                    
+                    square.appendChild(pieceSpan);
+                }
+                
+                // Highlight last move
+                if (gameState.lastMove) {
+                    const [fromSquare, toSquare] = parseMove(gameState.lastMove);
+                    if ((actualRow === fromSquare.row && actualCol === fromSquare.col) ||
+                        (actualRow === toSquare.row && actualCol === toSquare.col)) {
+                        square.classList.add('last-move');
+                    }
+                }
+            });
+        }
+
+        // Parse FEN string to get piece positions
+        function parseFEN(fen) {
+            const [position] = fen.split(' ');
+            const rows = position.split('/');
+            const pieces = [];
+            
+            for (let i = 0; i < 8; i++) {
+                pieces[i] = [];
+                let colIndex = 0;
+                
+                for (const char of rows[i]) {
+                    if (isNaN(char)) {
+                        pieces[i][colIndex] = char; // Keep the original character (K, k, etc.)
+                        colIndex++;
+                    } else {
+                        const emptySpaces = parseInt(char);
+                        for (let j = 0; j < emptySpaces; j++) {
+                            pieces[i][colIndex] = '';
+                            colIndex++;
+                        }
+                    }
+                }
+            }
+            
+            return pieces;
+        }
+
+        // Parse move notation (e.g., "e2e4")
+        function parseMove(move) {
+            const fromSquare = {
+                col: move.charCodeAt(0) - 97, // 'a' = 0
+                row: 8 - parseInt(move[1])
+            };
+            const toSquare = {
+                col: move.charCodeAt(2) - 97,
+                row: 8 - parseInt(move[3])
+            };
+            
+            return [fromSquare, toSquare];
+        }
+
+        // Enhanced square click handler with better piece detection
+        function handleSquareClickEnhanced(event) {
+            if (!gameState.isMyTurn || gameState.status !== 'active') {
+                if (gameState.status !== 'active') {
+                    showNotification('Game is not active', 'error');
+                } else {
+                    showNotification("It's not your turn!", 'error');
+                }
+                return;
+            }
+            
+            const square = event.currentTarget;
+            const row = parseInt(square.dataset.row);
+            const col = parseInt(square.dataset.col);
+            
+            console.log('Square clicked:', {row, col, playerColor: gameState.playerColor});
+            
+            // Convert display coordinates to actual board coordinates
+            const actualRow = gameState.playerColor === 'b' ? 7 - row : row;
+            const actualCol = gameState.playerColor === 'b' ? 7 - col : col;
+            
+            console.log('Actual coordinates:', {actualRow, actualCol});
+            
+            const clickedPieceChar = getPieceCharAt(actualRow, actualCol);
+            console.log('Clicked piece character:', clickedPieceChar);
+
+            if (gameState.selectedSquare) {
+                const selectedPieceChar = getPieceCharAt(gameState.selectedSquare.row, gameState.selectedSquare.col);
+                console.log('Selected piece character:', selectedPieceChar, 'at', gameState.selectedSquare);
+                
+                // Check if clicking on the same square (deselect)
+                if (gameState.selectedSquare.row === actualRow && gameState.selectedSquare.col === actualCol) {
+                    clearSelection();
+                    return;
+                }
+                
+                // Check if clicking on another piece of the same color (select new piece)
+                if (clickedPieceChar && isMyPieceChar(clickedPieceChar)) {
+                    clearSelection();
+                    selectSquareEnhanced(actualRow, actualCol, square);
+                    return;
+                }
+                
+                // Attempt to make a move
+                const move = `${String.fromCharCode(97 + gameState.selectedSquare.col)}${8 - gameState.selectedSquare.row}${String.fromCharCode(97 + actualCol)}${8 - actualRow}`;
+                console.log('Attempting move:', move);
+                
+                if (isValidChessMove(gameState.selectedSquare, {row: actualRow, col: actualCol}, selectedPieceChar, clickedPieceChar)) {
+                    makeMove(move);
+                } else {
+                    showNotification('Invalid move!', 'error');
+                    clearSelection();
+                }
+            } else {
+                // Select a piece if it belongs to the current player
+                if (clickedPieceChar && isMyPieceChar(clickedPieceChar)) {
+                    selectSquareEnhanced(actualRow, actualCol, square);
+                } else {
+                    console.log('Cannot select piece:', {
+                        clickedPieceChar, 
+                        playerColor: gameState.playerColor,
+                        isMyPiece: clickedPieceChar ? isMyPieceChar(clickedPieceChar) : false
+                    });
+                    showNotification('Select your own piece', 'error');
+                }
+            }
+        }
+
+        // Get piece character at position (returns the FEN character like 'K', 'k', etc.)
+        function getPieceCharAt(row, col) {
+            const pieces = parseFEN(gameState.currentFen);
+            return pieces[row][col] || null;
+        }
+
+        // FIXED: Check if piece character belongs to current player
+        function isMyPieceChar(pieceChar) {
+            if (!pieceChar || !gameState.playerColor) return false;
+            
+            console.log('Checking if piece is mine:', {
+                pieceChar,
+                playerColor: gameState.playerColor,
+                isWhitePiece: WHITE_PIECES.includes(pieceChar),
+                isBlackPiece: BLACK_PIECES.includes(pieceChar)
+            });
+            
+            if (gameState.playerColor === 'w') {
+                // Player is white, can only move white pieces (uppercase)
+                return WHITE_PIECES.includes(pieceChar);
+            } else {
+                // Player is black, can only move black pieces (lowercase)  
+                return BLACK_PIECES.includes(pieceChar);
+            }
+        }
+
+        // Enhanced square selection with proper move highlighting
+        function selectSquareEnhanced(row, col, squareElement) {
+            // Find the correct square element based on display coordinates
+            const displayRow = gameState.playerColor === 'b' ? 7 - row : row;
+            const displayCol = gameState.playerColor === 'b' ? 7 - col : col;
+            const squareIndex = displayRow * 8 + displayCol;
+            const correctSquare = document.querySelectorAll('.square')[squareIndex];
+            
+            if (correctSquare) {
+                gameState.selectedSquare = {row, col};
+                correctSquare.classList.add('selected');
+                
+                const pieceChar = getPieceCharAt(row, col);
+                console.log('Selected piece:', pieceChar, 'at', {row, col});
+                highlightValidMoves(row, col, pieceChar);
+            }
+        }
+
+        // Clear selection
+        function clearSelection() {
+            gameState.selectedSquare = null;
+            
+            const squares = document.querySelectorAll('.square');
+            squares.forEach(square => {
+                square.classList.remove('selected', 'possible-move', 'capture-move');
+            });
+        }
+
+        // Highlight valid moves for a piece
+        function highlightValidMoves(row, col, pieceChar) {
+            const board = document.getElementById('chess-board');
+            const squares = board.querySelectorAll('.square');
+
+            for (let targetRow = 0; targetRow < 8; targetRow++) {
+                for (let targetCol = 0; targetCol < 8; targetCol++) {
+                    const targetPieceChar = getPieceCharAt(targetRow, targetCol);
+                    
+                    if (isValidChessMove({row, col}, {row: targetRow, col: targetCol}, pieceChar, targetPieceChar)) {
+                        const displayRow = gameState.playerColor === 'b' ? 7 - targetRow : targetRow;
+                        const displayCol = gameState.playerColor === 'b' ? 7 - targetCol : targetCol;
+                        const squareIndex = displayRow * 8 + displayCol;
+                        
+                        if (squares[squareIndex]) {
+                            if (targetPieceChar) {
+                                squares[squareIndex].classList.add('capture-move');
+                            } else {
+                                squares[squareIndex].classList.add('possible-move');
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Enhanced move validation for better chess logic
+        function isValidChessMove(from, to, pieceChar, targetPieceChar) {
+            // Basic validation first
+            if (!pieceChar) return false;
+            if (from.row === to.row && from.col === to.col) return false;
+            
+            const dx = Math.abs(to.col - from.col);
+            const dy = Math.abs(to.row - from.row);
+
+            // Can't capture own piece
+            if (targetPieceChar && isMyPieceChar(targetPieceChar)) {
+                return false;
+            }
+
+            // Enhanced chess move validation based on piece character
+            switch (pieceChar.toLowerCase()) {
+                case 'p': // Pawn
+                    const isWhitePawn = pieceChar === 'P';
+                    const direction = isWhitePawn ? -1 : 1; // White moves up (decreasing row), black moves down
+                    const startRow = isWhitePawn ? 6 : 1;
+
+                    if (dx === 0) { // Moving straight
+                        if (targetPieceChar) return false; // Can't capture straight
+                        if (dy === 1 && (to.row - from.row) === direction) return true;
+                        if (dy === 2 && from.row === startRow && (to.row - from.row) === 2 * direction) return true;
+                    } else if (dx === 1 && dy === 1 && (to.row - from.row) === direction) {
+                        return !!targetPieceChar; // Can only capture diagonally
+                    }
+                    return false;
+
+                case 'r': // Rook
+                    return (dx === 0 || dy === 0) && !isPathBlocked(from, to);
+
+                case 'n': // Knight
+                    return (dx === 2 && dy === 1) || (dx === 1 && dy === 2);
+
+                case 'b': // Bishop
+                    return dx === dy && !isPathBlocked(from, to);
+
+                case 'q': // Queen
+                    return (dx === 0 || dy === 0 || dx === dy) && !isPathBlocked(from, to);
+
+                case 'k': // King
+                    return dx <= 1 && dy <= 1;
+
+                default:
+                    console.log('Unknown piece type for validation:', pieceChar);
+                    return false;
+            }
+        }
+
+        // Check if path is blocked (for rook, bishop, queen)
+        function isPathBlocked(from, to) {
+            const dx = Math.sign(to.col - from.col);
+            const dy = Math.sign(to.row - from.row);
+            let x = from.col + dx;
+            let y = from.row + dy;
+
+            while (x !== to.col || y !== to.row) {
+                if (getPieceCharAt(y, x)) return true;
+                x += dx;
+                y += dy;
+            }
+            return false;
+        }
+
+        // Make a move
+        function makeMove(move) {
+            console.log('Attempting to make move:', move);
+            
+            if (!socket || socket.readyState !== WebSocket.OPEN) {
+                showNotification('Connection lost. Reconnecting...', 'error');
+                connectToGame();
+                return;
+            }
+            
+            if (!gameState.isMyTurn) {
+                showNotification("It's not your turn!", 'error');
+                clearSelection();
+                return;
+            }
+            
+            // Calculate the new FEN after applying the move
+            const newFen = calculateNewFen(gameState.currentFen, move);
+            
+            const moveMessage = {
+                type: 'move',
+                gameId: gameState.gameId,
+                fen: newFen, // FEN state AFTER the move is applied
+                walletAddress: gameState.walletAddress,
+                move: move,
+                clientTime: Date.now(),
+                initialFen: gameState.currentFen // Current FEN state BEFORE the move
+            };
+            
+            console.log('Sending move to server:', moveMessage);
+            
+            try {
+                socket.send(JSON.stringify(moveMessage));
+                
+                // Temporarily disable moves until server responds
+                gameState.isMyTurn = false;
+                updateTurnDisplay();
+                updateDebugInfo();
+                
+                showNotification('Move sent...', 'info');
+            } catch (error) {
+                console.error('Error sending move:', error);
+                showNotification('Failed to send move', 'error');
+                gameState.isMyTurn = gameState.currentTurn === gameState.playerColor; // Restore turn state
+            }
+            
+            clearSelection();
+        }
+
+        // Calculate new FEN after applying a move (simplified implementation)
+        function calculateNewFen(currentFen, move) {
+            console.log('Calculating new FEN for move:', move, 'from current FEN:', currentFen);
+            
+            try {
+                const [position, turn, castling, enPassant, halfMove, fullMove] = currentFen.split(' ');
+                
+                // Parse the move (e.g., "e2e4")
+                const fromSquare = move.substring(0, 2); // "e2"
+                const toSquare = move.substring(2, 4); // "e4"
+                
+                // Convert algebraic to array indices
+                const fromCol = fromSquare.charCodeAt(0) - 97; // 'a' = 0
+                const fromRow = 8 - parseInt(fromSquare[1]); // '1' = 7, '8' = 0
+                const toCol = toSquare.charCodeAt(0) - 97;
+                const toRow = 8 - parseInt(toSquare[1]);
+                
+                // Parse current position into 2D array
+                const board = parseFenPosition(position);
+                
+                // Get the piece being moved
+                const piece = board[fromRow][fromCol];
+                const targetPiece = board[toRow][toCol];
+                
+                // Make the move
+                board[toRow][toCol] = piece; // Place piece at destination
+                board[fromRow][fromCol] = ''; // Clear source square
+                
+                // Convert board back to FEN position
+                const newPosition = boardToFenPosition(board);
+                
+                // Toggle turn
+                const newTurn = turn === 'w' ? 'b' : 'w';
+                
+                // Update half-move clock (resets on pawn move or capture)
+                let newHalfMove = parseInt(halfMove);
+                if (piece.toLowerCase() === 'p' || targetPiece) {
+                    newHalfMove = 0; // Reset on pawn move or capture
+                } else {
+                    newHalfMove += 1; // Increment otherwise
+                }
+                
+                // Update full move number (increments after Black's move)
+                let newFullMove = parseInt(fullMove);
+                if (turn === 'b') {
+                    newFullMove += 1; // Increment after Black moves
+                }
+                
+                // For now, keep castling rights and en passant the same
+                // In a full implementation, you'd update these based on the move
+                const newFen = `${newPosition} ${newTurn} ${castling} ${enPassant} ${newHalfMove} ${newFullMove}`;
+                
+                console.log('Calculated new FEN:', newFen);
+                return newFen;
+                
+            } catch (error) {
+                console.error('Error calculating new FEN:', error);
+                // Return a modified FEN with just the turn toggled as fallback
+                const parts = currentFen.split(' ');
+                parts[1] = parts[1] === 'w' ? 'b' : 'w';
+                // Also increment full move if it was black's turn
+                if (parts[1] === 'w') { // Was black's turn, now white's
+                    parts[5] = (parseInt(parts[5]) + 1).toString();
+                }
+                return parts.join(' ');
+            }
+        }
+
+        // Parse FEN position into 2D board array
+        function parseFenPosition(position) {
+            const rows = position.split('/');
+            const board = [];
+            
+            for (let i = 0; i < 8; i++) {
+                board[i] = [];
+                let colIndex = 0;
+                
+                for (const char of rows[i]) {
+                    if (isNaN(char)) {
+                        // It's a piece
+                        board[i][colIndex] = char;
+                        colIndex++;
+                    } else {
+                        // It's a number of empty squares
+                        const emptySpaces = parseInt(char);
+                        for (let j = 0; j < emptySpaces; j++) {
+                            board[i][colIndex] = '';
+                            colIndex++;
+                        }
+                    }
+                }
+            }
+            
+            return board;
+        }
+
+        // Convert 2D board array back to FEN position
+        function boardToFenPosition(board) {
+            let position = '';
+            
+            for (let row = 0; row < 8; row++) {
+                let emptyCount = 0;
+                
+                for (let col = 0; col < 8; col++) {
+                    const piece = board[row][col];
+                    
+                    if (piece === '' || piece === null) {
+                        emptyCount++;
+                    } else {
+                        if (emptyCount > 0) {
+                            position += emptyCount;
+                            emptyCount = 0;
+                        }
+                        position += piece;
+                    }
+                }
+                
+                if (emptyCount > 0) {
+                    position += emptyCount;
+                }
+                
+                if (row < 7) position += '/';
+            }
+            
+            return position;
+        }
+
+        // Update connection status
+        function updateConnectionStatus(status) {
+            const statusElement = document.getElementById('connection-status');
+            statusElement.className = `connection-status ${status}`;
+            
+            switch (status) {
+                case 'connected':
+                    statusElement.textContent = 'Connected';
+                    break;
+                case 'disconnected':
+                    statusElement.textContent = 'Disconnected';
+                    break;
+                case 'connecting':
+                    statusElement.textContent = 'Connecting...';
+                    break;
+            }
+        }
+
+        // Update turn display
+        function updateTurnDisplay() {
+            const turnElement = document.getElementById('current-turn');
+            const turnText = gameState.currentTurn === 'w' ? 'White' : 'Black';
+            const isMyTurnText = gameState.isMyTurn ? ' (Your turn)' : '';
+            turnElement.textContent = `${turnText} to move${isMyTurnText}`;
+        }
+
+        // Update timers
+        function updateTimers() {
+            const whiteTimeElement = document.getElementById(gameState.playerColor === 'w' ? 'bottom-player-time' : 'top-player-time');
+            const blackTimeElement = document.getElementById(gameState.playerColor === 'b' ? 'bottom-player-time' : 'top-player-time');
+            
+            whiteTimeElement.textContent = formatTime(gameState.whiteTime);
+            blackTimeElement.textContent = formatTime(gameState.blackTime);
+            
+            // Add low time warning
+            if (gameState.whiteTime < 60) whiteTimeElement.classList.add('low');
+            if (gameState.blackTime < 60) blackTimeElement.classList.add('low');
+        }
+
+        // Start timer
+        function startTimer() {
+            clearInterval(gameState.timerInterval);
+            
+            gameState.timerInterval = setInterval(() => {
+                if (gameState.currentTurn === 'w') {
+                    gameState.whiteTime = Math.max(0, gameState.whiteTime - 1);
+                } else {
+                    gameState.blackTime = Math.max(0, gameState.blackTime - 1);
+                }
+                
+                updateTimers();
+                
+                // Check for time out
+                if (gameState.whiteTime === 0 || gameState.blackTime === 0) {
+                    clearInterval(gameState.timerInterval);
+                    showNotification('Time out!', 'error');
+                }
+            }, 1000);
+        }
+
+        // Format time (seconds to MM:SS)
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Resign button
+            document.getElementById('resign-btn').addEventListener('click', () => {
+                if (confirm('Are you sure you want to resign?')) {
+                    socket.send(JSON.stringify({
+                        type: 'resign',
+                        gameId: gameState.gameId,
+                        walletAddress: gameState.walletAddress
+                    }));
+                }
+            });
+
+            // Draw button
+            document.getElementById('draw-btn').addEventListener('click', () => {
+                socket.send(JSON.stringify({
+                    type: 'draw',
+                    gameId: gameState.gameId,
+                    walletAddress: gameState.walletAddress
+                }));
+                showNotification('Draw offer sent', 'success');
+            });
+
+            // Checkmate button
+            document.getElementById('checkmate-btn').addEventListener('click', () => {
+                socket.send(JSON.stringify({
+                    type: 'checkmate',
+                    gameId: gameState.gameId,
+                    walletAddress: gameState.walletAddress
+                }));
+            });
+
+            // Chat functionality
+            const chatInput = document.getElementById('chat-input');
+            const sendChatBtn = document.getElementById('send-chat');
+
+            function sendChat() {
+                const message = chatInput.value.trim();
+                if (message) {
+                    socket.send(JSON.stringify({
+                        type: 'chat',
+                        gameId: gameState.gameId,
+                        message: message,
+                        sender: shortenAddress(gameState.walletAddress)
+                    }));
+                    chatInput.value = '';
+                }
+            }
+
+            sendChatBtn.addEventListener('click', sendChat);
+            chatInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    sendChat();
+                }
+            });
+
+            // Return to lobby button
+            document.getElementById('return-to-lobby-btn').addEventListener('click', () => {
+                window.location.href = 'lobby.html';
+            });
+
+            // Close modal on outside click
+            document.getElementById('game-end-modal').addEventListener('click', (e) => {
+                if (e.target.id === 'game-end-modal') {
+                    e.target.style.display = 'none';
+                }
+            });
+        }
+
+        // Update player names with wallet addresses
+        function updatePlayerNames() {
+            const bottomName = document.getElementById('bottom-player-name');
+            const topName = document.getElementById('top-player-name');
+            
+            bottomName.textContent = `You (${shortenAddress(gameState.walletAddress)})`;
+            topName.textContent = 'Opponent';
+        }
+
+        // Utility functions
+        function getCookie(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
+        }
+
+        function shortenAddress(address) {
+            if (!address) return '';
+            return `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
+        }
+
+        function showNotification(message, type = 'info') {
+            const notificationArea = document.getElementById('notification-area') || createNotificationArea();
+            
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            
+            notificationArea.appendChild(notification);
+            
+            // Remove notification after 5 seconds
+            setTimeout(() => {
+                notification.remove();
+            }, 5000);
+        }
+
+        function createNotificationArea() {
+            const area = document.createElement('div');
+            area.id = 'notification-area';
+            area.className = 'notification-area';
+            document.body.appendChild(area);
+            return area;
+        }
+
+        // Handle window beforeunload to warn about leaving game
+        window.addEventListener('beforeunload', (e) => {
+            if (gameState.status === 'active') {
+                e.preventDefault();
+                e.returnValue = 'Are you sure you want to leave the game? You may lose by abandonment.';
+            }
+        });
+
+        // Handle visibility change to pause/resume timer
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                clearInterval(gameState.timerInterval);
+            } else if (gameState.status === 'active') {
+                startTimer();
+            }
+        });
+    </script>
+</body>
+</html>

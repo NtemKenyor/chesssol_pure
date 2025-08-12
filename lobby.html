@@ -1,0 +1,1312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChessSol - Lobby</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0F0F23 0%, #1a1a2e 50%, #16213e 100%);
+            min-height: 100vh;
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+
+        /* Animated background elements */
+        .bg-decoration {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 0;
+        }
+
+        .bg-decoration::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(139, 69, 193, 0.1) 0%, transparent 70%);
+            animation: rotate 20s linear infinite;
+        }
+
+        .chess-piece-bg {
+            position: absolute;
+            opacity: 0.05;
+            font-size: 120px;
+            color: #8b45c1;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .chess-piece-bg:nth-child(1) { top: 10%; left: 85%; animation-delay: 0s; }
+        .chess-piece-bg:nth-child(2) { top: 70%; left: 10%; animation-delay: 2s; }
+        .chess-piece-bg:nth-child(3) { top: 40%; left: 80%; animation-delay: 4s; }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Header Styles */
+        header {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 25px 30px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            background: linear-gradient(135deg, #8b45c1, #4facfe);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 2.5rem;
+            font-weight: 800;
+            letter-spacing: -1px;
+        }
+
+        .wallet-info {
+            background: rgba(139, 69, 193, 0.2);
+            border: 1px solid rgba(139, 69, 193, 0.3);
+            padding: 12px 20px;
+            border-radius: 50px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .wallet-info:hover {
+            background: rgba(139, 69, 193, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .wallet-address {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+            color: #8b45c1;
+        }
+
+        .wallet-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .wallet-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .wallet-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.1);
+        }
+
+        /* Main Content Layout */
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 30px;
+            align-items: start;
+        }
+
+        /* Control Panel */
+        .control-panel {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .control-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .control-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .sol-price-display {
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+            color: #0a0a0a;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 14px 24px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover:before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #8b45c1, #6c5ce7);
+            color: white;
+            box-shadow: 0 4px 20px rgba(139, 69, 193, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(139, 69, 193, 0.6);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        /* Games Section */
+        .games-section {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .games-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .games-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #ffffff, #a0a0a0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .games-count {
+            background: rgba(139, 69, 193, 0.3);
+            color: #8b45c1;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        /* Game Items */
+        .game-item {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .game-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #8b45c1, #4facfe);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .game-item:hover {
+            transform: translateY(-4px);
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(139, 69, 193, 0.3);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .game-item:hover::before {
+            transform: scaleX(1);
+        }
+
+        .game-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .game-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .game-badges {
+            display: flex;
+            gap: 8px;
+        }
+
+        .game-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-waiting {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            color: white;
+        }
+
+        .badge-active {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            color: white;
+        }
+
+        .badge-betting {
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+            color: white;
+        }
+
+        .game-meta {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .game-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #b0b0b0;
+            font-size: 0.9rem;
+        }
+
+        .game-meta-item i {
+            color: #8b45c1;
+            width: 18px;
+        }
+
+        .player-address {
+            font-family: 'JetBrains Mono', monospace;
+            color: #4facfe;
+            font-weight: 600;
+        }
+
+        .game-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 0.9rem;
+            border-radius: 8px;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            color: white;
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            color: white;
+        }
+
+        /* Waiting Room */
+        .waiting-room {
+            text-align: center;
+            padding: 60px 40px;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .waiting-room h2 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #8b45c1, #4facfe);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .waiting-info {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 30px;
+            margin: 30px 0;
+        }
+
+        .waiting-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(139, 69, 193, 0.3);
+            border-top: 4px solid #8b45c1;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Modals */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .modal:not(.hidden) {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: rgba(15, 15, 35, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 40px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            transform: scale(0.9) translateY(20px);
+            transition: transform 0.3s ease;
+        }
+
+        .modal:not(.hidden) .modal-content {
+            transform: scale(1) translateY(0);
+        }
+
+        .modal h2 {
+            font-size: 1.8rem;
+            margin-bottom: 30px;
+            text-align: center;
+            background: linear-gradient(135deg, #8b45c1, #4facfe);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            color: white;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #8b45c1;
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 0 3px rgba(139, 69, 193, 0.2);
+        }
+
+        input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .bet-toggle {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .bet-toggle input[type="checkbox"] {
+            width: auto;
+            margin: 0;
+        }
+
+        .bet-options {
+            background: rgba(139, 69, 193, 0.1);
+            border: 1px solid rgba(139, 69, 193, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 15px;
+        }
+
+        .usdt-value {
+            color: #4facfe;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        /* Notifications */
+        .notification {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            padding: 16px 24px;
+            border-radius: 12px;
+            color: white;
+            font-weight: 600;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            animation: slideInRight 0.3s ease-out;
+            z-index: 1001;
+        }
+
+        .notification:not(.error) {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+        }
+
+        .notification.error {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .control-panel {
+                order: -1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+
+            header {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .game-meta {
+                grid-template-columns: 1fr;
+            }
+
+            .game-actions {
+                justify-content: center;
+            }
+
+            .modal-content {
+                padding: 30px 20px;
+                margin: 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .btn {
+                padding: 12px 20px;
+                font-size: 0.9rem;
+            }
+
+            .games-title {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="bg-decoration">
+        <div class="chess-piece-bg">♔</div>
+        <div class="chess-piece-bg">♕</div>
+        <div class="chess-piece-bg">♖</div>
+    </div>
+
+    <div class="container">
+        <header>
+            <h1>ChessSol</h1>
+            <div class="wallet-info">
+                <div class="wallet-address" id="wallet-address">0x123...abcd</div>
+                <div class="wallet-actions">
+                    <button id="view-profile" class="wallet-btn" title="View Profile">
+                        <i class="fas fa-user"></i>
+                    </button>
+                    <button id="disconnect-wallet" class="wallet-btn" title="Disconnect">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <div id="lobby-content">
+            <div class="main-content">
+                <div class="games-section">
+                    <div class="games-header">
+                        <h2 class="games-title">Live Games</h2>
+                        <span class="games-count" id="games-count">0 games</span>
+                    </div>
+                    <div id="available-games">
+                        <div style="text-align: center; padding: 40px; color: #888;">
+                            <div class="waiting-spinner"></div>
+                            <p>Loading games...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="control-panel">
+                    <div class="control-header">
+                        <h3 class="control-title">Game Control</h3>
+                        <div class="sol-price-display">
+                            SOL $<span id="sol-price">0.00</span>
+                        </div>
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <button id="create-game-btn" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Create Game
+                        </button>
+                        <button id="join-game-btn" class="btn btn-secondary">
+                            <i class="fas fa-sign-in-alt"></i> Join Game
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="waiting-room" class="waiting-room hidden">
+            <h2>Waiting for Opponent</h2>
+            <div class="waiting-spinner"></div>
+            <div class="waiting-info">
+                <p><strong>Game ID:</strong> <span id="waiting-game-id"></span></p>
+                <p><strong>Your Color:</strong> <span id="waiting-color"></span></p>
+                <p><strong>Game Type:</strong> <span id="waiting-category"></span></p>
+                <div id="waiting-bet-info" class="hidden">
+                    <p><strong>Wager Amount:</strong> <span id="waiting-bet-amount"></span> SOL</p>
+                    <p class="usdt-value">≈ $<span id="waiting-bet-usdt"></span></p>
+                    <p><strong>Transaction ID:</strong> <code id="waiting-tx-id"></code></p>
+                </div>
+            </div>
+            <button id="cancel-waiting" class="btn btn-secondary">Cancel</button>
+        </div>
+
+        <!-- Game Creation Modal -->
+        <div id="create-modal" class="modal hidden">
+            <div class="modal-content">
+                <h2><i class="fas fa-chess"></i> Create New Game</h2>
+                <form id="game-form">
+                    <div class="form-group">
+                        <label for="game-side">Your Side:</label>
+                        <select id="game-side">
+                            <option value="random">Random</option>
+                            <option value="w">White</option>
+                            <option value="b">Black</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="game-time">Time Control (minutes):</label>
+                        <input type="number" id="game-time" min="1" max="60" value="5">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="game-category">Game Category:</label>
+                        <select id="game-category">
+                            <option value="human">Human Opponent</option>
+                            <option value="AI">AI Opponent</option>
+                            <option value="pair">Pair Me (Find Opponent)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="bet-toggle">
+                        <input type="checkbox" id="is-betting">
+                        <label for="is-betting">Wager/Bet</label>
+                        <div id="bet-options" class="bet-options hidden">
+                            <div class="form-group">
+                                <label for="bet-amount">Amount (SOL):</label>
+                                <input type="number" id="bet-amount" min="0.1" step="0.1" value="0.1">
+                                <span class="usdt-value">≈ $<span id="bet-usdt-value">0.00</span></span>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="tx-id">Transaction ID:</label>
+                                <input type="text" id="tx-id" placeholder="Enter transaction ID">
+                                <small style="color: #888; font-size: 0.8rem;">For testing, use any random string like "tx_test_123"</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">Create Game</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Join Game Modal -->
+        <div id="join-modal" class="modal hidden">
+            <div class="modal-content">
+                <h2><i class="fas fa-sign-in-alt"></i> Join Game</h2>
+                <form id="join-form">
+                    <div class="form-group">
+                        <label for="game-id">Game ID:</label>
+                        <input type="text" id="game-id" placeholder="Enter game ID">
+                    </div>
+                    
+                    <div id="join-bet-options" class="hidden">
+                        <div class="form-group">
+                            <label for="join-bet-amount">Amount (SOL):</label>
+                            <input type="number" id="join-bet-amount" min="0.1" step="0.1" value="0.1" readonly>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="join-tx-id">Transaction ID:</label>
+                            <input type="text" id="join-tx-id" placeholder="Enter transaction ID">
+                            <small style="color: #888; font-size: 0.8rem;">Transaction ID from your payment</small>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">Join</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let socket;
+        let currentGameId = null;
+        let playerColor = null; // Store the player color from server response
+        let solanaPrice = 0;
+        let walletAddress = getCookie('walletAddress');
+        console.log('the wallet address used: ', walletAddress);
+        let currentGameList = [];
+        
+
+        // let api_url = "https://chesssol.com/chesssol/api/chesssol/backend";
+        // let api_url_local = "http://localhost:3000/chesssol/chesssol/backend";
+        // let websocket_url = 'wss://chesssol.com/api/chesssol/backend/ws';
+        // let websocket_local = "ws://localhost:3000/chesssol/backend/ws";
+
+        const api_url = window.location.hostname === 'localhost' 
+                ? 'http://localhost:3000/chesssol/backend'
+                : 'https://chesssol.com/api/chesssol/backend';
+
+        const websocket_url = window.location.hostname === 'localhost' 
+                ? 'ws://localhost:3000/chesssol/backend/ws'
+                : 'wss://chesssol.com/api/chesssol/backend/ws';
+                
+        // DOM elements
+        const lobbyContent = document.getElementById('lobby-content');
+        const waitingRoom = document.getElementById('waiting-room');
+        const createModal = document.getElementById('create-modal');
+        const joinModal = document.getElementById('join-modal');
+        const createForm = document.getElementById('game-form');
+        const joinForm = document.getElementById('join-form');
+        const cancelWaitingBtn = document.getElementById('cancel-waiting');
+        const availableGames = document.getElementById('available-games');
+        const isBettingCheckbox = document.getElementById('is-betting');
+        const betOptions = document.getElementById('bet-options');
+        const betAmountInput = document.getElementById('bet-amount');
+        const betUsdtValue = document.getElementById('bet-usdt-value');
+        const txIdInput = document.getElementById('tx-id');
+        const joinBetOptions = document.getElementById('join-bet-options');
+        const joinBetAmount = document.getElementById('join-bet-amount');
+        const viewProfileBtn = document.getElementById('view-profile');
+        const disconnectWalletBtn = document.getElementById('disconnect-wallet');
+        
+        // Initialize WebSocket and fetch initial data
+        async function initialize() {
+            document.getElementById('wallet-address').textContent = shortenAddress(walletAddress);
+            await fetchSolanaPrice();
+            initWebSocket();
+            listGames();
+            
+            // Update SOL price every minute
+            setInterval(fetchSolanaPrice, 60000);
+            
+            // Update games list every 10 seconds
+            setInterval(listGames, 10000);
+        }
+        
+        // Fetch SOL price
+        async function fetchSolanaPrice() {
+            try {
+                const response = await fetch(api_url+'/solana-price');
+                const data = await response.json();
+                solanaPrice = data.price;
+                document.getElementById('sol-price').textContent = solanaPrice.toFixed(2);
+                updateBetUsdtValue();
+            } catch (error) {
+                console.error('Failed to fetch SOL price:', error);
+            }
+        }
+        
+        // Update USDT value for bet amount
+        function updateBetUsdtValue() {
+            const betAmount = parseFloat(betAmountInput.value) || 0;
+            const usdtValue = (betAmount * solanaPrice).toFixed(2);
+            betUsdtValue.textContent = usdtValue;
+        }
+        
+        // Initialize WebSocket
+        function initWebSocket() {
+            socket = new WebSocket(websocket_url);
+            
+            socket.onopen = () => {
+                console.log('Connected to server');
+            };
+            
+            socket.onmessage = (event) => {
+                const message = JSON.parse(event.data);
+                handleMessage(message);
+            };
+            
+            socket.onclose = () => {
+                console.log('Disconnected from server');
+                showNotification('Disconnected from server', 'error');
+            };
+        }
+        
+        // Handle incoming messages
+        function handleMessage(message) {
+            console.log('Received:', message);
+            
+            switch(message.type) {
+                case 'created':
+                    handleGameCreated(message);
+                    break;
+                case 'joined':
+                    handleGameJoined(message);
+                    break;
+                case 'error':
+                    showNotification(message.message, 'error');
+                    break;
+                default:
+                    console.log('Unhandled message:', message);
+            }
+        }
+        
+        // Handle game creation response
+        function handleGameCreated(message) {
+            currentGameId = message.gameId;
+            playerColor = message.color; // Store the player color from server
+            
+            lobbyContent.classList.add('hidden');
+            waitingRoom.classList.remove('hidden');
+            
+            document.getElementById('waiting-game-id').textContent = message.gameId;
+            document.getElementById('waiting-color').textContent = message.color === 'w' ? 'White' : 'Black';
+            document.getElementById('waiting-category').textContent = getCategoryName(message.cat);
+            
+            if (message.isBetting) {
+                document.getElementById('waiting-bet-info').classList.remove('hidden');
+                document.getElementById('waiting-bet-amount').textContent = message.playerAmount;
+                const usdtValue = (message.playerAmount * solanaPrice).toFixed(2);
+                document.getElementById('waiting-bet-usdt').textContent = usdtValue;
+                document.getElementById('waiting-tx-id').textContent = message.transactionId || 'Not provided';
+            } else {
+                document.getElementById('waiting-bet-info').classList.add('hidden');
+            }
+            
+            createModal.classList.add('hidden');
+            showNotification('Game created successfully');
+        }
+        
+        // Get category display name
+        function getCategoryName(cat) {
+            switch(cat) {
+                case 'human': return 'Human Opponent';
+                case 'AI': return 'AI Opponent';
+                case 'pair': return 'Find Opponent';
+                default: return cat;
+            }
+        }
+        
+        // Handle game join response
+        function handleGameJoined(message) {
+            playerColor = message.color; // Store the player color from server
+            
+            // Redirect to game page with both gameId and playerColor
+            window.location.href = `game.html?gameId=${message.gameId}&playerColor=${playerColor}`;
+        }
+        
+        // List available games using REST API
+        async function listGames() {
+            try {
+                const response = await fetch(api_url+'/listGames');
+                const data = await response.json();
+                
+                if (data.status && data.data && data.data.length > 0) {
+                    currentGameList = data.data;
+                    updateGameList(data.data);
+                    document.getElementById('games-count').textContent = `${data.data.length} games`;
+                } else {
+                    availableGames.innerHTML = `
+                        <div style="text-align: center; padding: 60px; color: #888;">
+                            <i class="fas fa-chess-board" style="font-size: 48px; margin-bottom: 20px; color: #444;"></i>
+                            <p style="font-size: 1.1rem;">No games available</p>
+                            <p style="font-size: 0.9rem; margin-top: 10px;">Create a new game to get started!</p>
+                        </div>
+                    `;
+                    document.getElementById('games-count').textContent = '0 games';
+                }
+            } catch (error) {
+                console.error('Failed to fetch games:', error);
+                availableGames.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #e74c3c;">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 32px; margin-bottom: 15px;"></i>
+                        <p>Error loading games</p>
+                    </div>
+                `;
+                showNotification('Failed to load games', 'error');
+            }
+        }
+        
+        // Get game data for a specific game
+        async function getGameData(gameId) {
+            try {
+                const response = await fetch(`${api_url}/gameData/${gameId}`);
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error('Failed to fetch game data:', error);
+                showNotification('Failed to load game details', 'error');
+                return null;
+            }
+        }
+        
+        // Update available games list with enhanced details
+        function updateGameList(games) {
+            availableGames.innerHTML = '';
+            
+            games.forEach(game => {
+                const gameItem = document.createElement('div');
+                gameItem.className = 'game-item';
+                
+                // Game header with badges
+                const gameHeader = document.createElement('div');
+                gameHeader.className = 'game-header';
+                
+                const gameTitle = document.createElement('div');
+                gameTitle.className = 'game-title';
+                gameTitle.innerHTML = `<i class="fas fa-chess"></i> ${game.game_hash.substring(0, 8)}...`;
+                
+                const gameBadges = document.createElement('div');
+                gameBadges.className = 'game-badges';
+                
+                const statusBadge = document.createElement('span');
+                statusBadge.className = `game-badge ${game.game_state === 'waiting' ? 'badge-waiting' : 'badge-active'}`;
+                statusBadge.textContent = game.game_state === 'waiting' ? 'Waiting' : 'Active';
+                gameBadges.appendChild(statusBadge);
+                
+                if (game.bet_status) {
+                    const betBadge = document.createElement('span');
+                    betBadge.className = 'game-badge badge-betting';
+                    betBadge.textContent = 'Betting';
+                    gameBadges.appendChild(betBadge);
+                }
+                
+                gameHeader.appendChild(gameTitle);
+                gameHeader.appendChild(gameBadges);
+                gameItem.appendChild(gameHeader);
+                
+                // Game metadata
+                const gameMeta = document.createElement('div');
+                gameMeta.className = 'game-meta';
+                
+                // Players
+                if (game.player1) {
+                    const player1Item = document.createElement('div');
+                    player1Item.className = 'game-meta-item';
+                    player1Item.innerHTML = `<i class="fas fa-user"></i> P1: <span class="player-address">${shortenAddress(game.player1)}</span>`;
+                    gameMeta.appendChild(player1Item);
+                }
+                
+                if (game.player2) {
+                    const player2Item = document.createElement('div');
+                    player2Item.className = 'game-meta-item';
+                    player2Item.innerHTML = `<i class="fas fa-user"></i> P2: <span class="player-address">${shortenAddress(game.player2)}</span>`;
+                    gameMeta.appendChild(player2Item);
+                } else {
+                    const waitingItem = document.createElement('div');
+                    waitingItem.className = 'game-meta-item';
+                    waitingItem.innerHTML = `<i class="fas fa-clock"></i> Waiting for player 2`;
+                    gameMeta.appendChild(waitingItem);
+                }
+                
+                // Duration
+                const durationItem = document.createElement('div');
+                durationItem.className = 'game-meta-item';
+                durationItem.innerHTML = `<i class="fas fa-stopwatch"></i> ${(game.duration / 60000).toFixed(0)} min`;
+                gameMeta.appendChild(durationItem);
+                
+                // Bet amount if betting game
+                if (game.bet_status && game.player_amount) {
+                    const betItem = document.createElement('div');
+                    betItem.className = 'game-meta-item';
+                    const usdtValue = (game.player_amount * solanaPrice).toFixed(2);
+                    betItem.innerHTML = `<i class="fas fa-coins"></i> ${game.player_amount} SOL <span class="usdt-value">(≈ ${usdtValue})</span>`;
+                    gameMeta.appendChild(betItem);
+                }
+                
+                gameItem.appendChild(gameMeta);
+                
+                // Game actions
+                const gameActions = document.createElement('div');
+                gameActions.className = 'game-actions';
+                
+                // Only show join button for waiting games
+                if (game.game_state === 'waiting') {
+                    const joinBtn = document.createElement('button');
+                    joinBtn.className = `btn btn-small ${game.bet_status ? 'btn-warning' : 'btn-primary'}`;
+                    joinBtn.innerHTML = `<i class="fas fa-sign-in-alt"></i> ${game.bet_status ? 'Join Bet' : 'Join'}`;
+                    joinBtn.onclick = () => joinGameHandler(game);
+                    gameActions.appendChild(joinBtn);
+                }
+                
+                // Always show spectate button
+                const spectateBtn = document.createElement('button');
+                spectateBtn.className = 'btn btn-small btn-success';
+                spectateBtn.innerHTML = '<i class="fas fa-eye"></i> Spectate';
+                spectateBtn.onclick = () => spectateGame(game.game_hash);
+                gameActions.appendChild(spectateBtn);
+                
+                gameItem.appendChild(gameActions);
+                availableGames.appendChild(gameItem);
+            });
+        }
+        
+        // Handle joining a game (with betting support)
+        async function joinGameHandler(game) {
+            if (game.bet_status) {
+                // Show join modal with betting options
+                document.getElementById('game-id').value = game.game_hash;
+                document.getElementById('join-bet-amount').value = game.player_amount || 0.1;
+                joinBetOptions.classList.remove('hidden');
+                joinModal.classList.remove('hidden');
+            } else {
+                // Regular join
+                joinGame(game.game_hash);
+            }
+        }
+        
+        // Handle the join game form submission
+        async function handleJoinGame(gameId) {
+            try {
+                // First get game data to check if it's a betting game
+                const gameData = await getGameData(gameId);
+                
+                if (!gameData || !gameData.state) {
+                    showNotification('Game not found or invalid', 'error');
+                    return;
+                }
+                
+                if (gameData.bet_status) {
+                    // It's a betting game - show betting options
+                    document.getElementById('game-id').value = gameId;
+                    joinBetAmount.value = gameData.paymentAmount || 0.1;
+                    joinBetOptions.classList.remove('hidden');
+                    joinModal.classList.remove('hidden');
+                } else {
+                    // Regular game - join directly
+                    joinGame(gameId);
+                }
+            } catch (error) {
+                console.error('Error joining game:', error);
+                showNotification('Error joining game', 'error');
+            }
+        }
+        
+        // Create a new game (with betting support)
+        function createGame(side, duration, category, isBetting, betAmount, txId) {
+            const gameData = {
+                type: 'create',
+                walletAddress: walletAddress,
+                side: side,
+                duration: duration * 60000, // Convert to ms
+                cat: category
+            };
+            
+            if (isBetting) {
+                if (!txId || !betAmount) {
+                    showNotification('Betting games require amount and transaction ID', 'error');
+                    return;
+                }
+                
+                gameData.isBetting = true;
+                gameData.playerAmount = parseFloat(betAmount);
+                gameData.transactionId = txId;
+            }
+            
+            socket.send(JSON.stringify(gameData));
+        }
+        
+        // Join an existing game (with betting support)
+        function joinGame(gameId, isBetting = false, betAmount = 0, txId = '') {
+            const joinData = {
+                type: 'join',
+                walletAddress: walletAddress,
+                gameId: gameId
+            };
+            
+            if (isBetting) {
+                joinData.isBetting = true;
+                joinData.playerAmount = parseFloat(betAmount);
+                joinData.transactionId = txId;
+            }
+            
+            socket.send(JSON.stringify(joinData));
+        }
+        
+        // Spectate a game
+        function spectateGame(gameId) {
+            window.location.href = `spectator.html?gameId=${gameId}`;
+        }
+        
+        // View profile
+        function viewProfile() {
+            window.location.href = 'profile.html';
+        }
+        
+        // Disconnect wallet
+        function disconnectWallet() {
+            // Clear cookies (in a real app)
+            document.cookie = 'walletAddress=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+            // Redirect to index
+            window.location.href = 'index.html';
+        }
+        
+        // Cancel waiting and return to lobby
+        function cancelWaiting() {
+            // In a real app, you might want to notify the server
+            waitingRoom.classList.add('hidden');
+            lobbyContent.classList.remove('hidden');
+            currentGameId = null;
+            playerColor = null;
+            listGames();
+        }
+        
+        // Shorten wallet address for display
+        function shortenAddress(address) {
+            if (!address) return 'None';
+            return `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
+        }
+        
+        // Show notification
+        function showNotification(message, type = 'success') {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type === 'error' ? 'error' : ''}`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        function getCookie(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
+        }
+        
+        // Event listeners
+        document.getElementById('create-game-btn').addEventListener('click', () => {
+            createModal.classList.remove('hidden');
+        });
+        
+        document.getElementById('join-game-btn').addEventListener('click', () => {
+            joinModal.classList.remove('hidden');
+            joinBetOptions.classList.add('hidden');
+        });
+        
+        createForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const side = document.getElementById('game-side').value;
+            const time = document.getElementById('game-time').value;
+            const category = document.getElementById('game-category').value;
+            const isBetting = isBettingCheckbox.checked;
+            const betAmount = isBetting ? document.getElementById('bet-amount').value : 0;
+            const txId = isBetting ? document.getElementById('tx-id').value : '';
+            
+            createGame(side, time, category, isBetting, betAmount, txId);
+        });
+        
+        joinForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const gameId = document.getElementById('game-id').value;
+            
+            if (!gameId) {
+                showNotification('Please enter a game ID', 'error');
+                return;
+            }
+            
+            // Check if this is a betting game
+            const isBetting = !joinBetOptions.classList.contains('hidden');
+            
+            if (isBetting) {
+                const betAmount = document.getElementById('join-bet-amount').value;
+                const txId = document.getElementById('join-tx-id').value;
+                
+                if (!txId) {
+                    showNotification('Betting games require a transaction ID', 'error');
+                    return;
+                }
+                
+                joinModal.classList.add('hidden');
+                joinGame(gameId, true, betAmount, txId);
+            } else {
+                // Regular game join
+                joinModal.classList.add('hidden');
+                joinGame(gameId);
+            }
+        });
+        
+        cancelWaitingBtn.addEventListener('click', cancelWaiting);
+        
+        isBettingCheckbox.addEventListener('change', () => {
+            betOptions.classList.toggle('hidden', !isBettingCheckbox.checked);
+            updateBetUsdtValue();
+        });
+        
+        betAmountInput.addEventListener('input', updateBetUsdtValue);
+        
+        viewProfileBtn.addEventListener('click', viewProfile);
+        disconnectWalletBtn.addEventListener('click', disconnectWallet);
+        
+        // Close modals when clicking outside
+        window.addEventListener('click', (e) => {
+            if (e.target.classList.contains('modal')) {
+                createModal.classList.add('hidden');
+                joinModal.classList.add('hidden');
+            }
+        });
+        
+        // Initialize
+        initialize();
+    </script>
+</body>
+</html>

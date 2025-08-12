@@ -1,0 +1,4 @@
+let api_url = "https://chesssol.com/chesssol/api/chesssol/backend";
+let api_url_local = "http://localhost:3000/chesssol/chesssol/backend";
+let websocket_url = 'wss://chesssol.com/api/chesssol/backend/ws';
+let websocket_local = "ws://localhost:3000/chesssol/backend/ws";
