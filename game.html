@@ -492,7 +492,7 @@
         </div>
     </div>
 
-    <script src="main.js"></script>
+    <!-- <script src="main.js"></script> -->
     <script>
         // Chess piece Unicode symbols with color mapping
         const PIECES = {
@@ -525,14 +525,38 @@
 
         // Initialize game
         document.addEventListener('DOMContentLoaded', () => {
-            gameState.walletAddress = getCookie('walletAddress');
+            
+
+            // gameState.gameId = new URLSearchParams(window.location.search).get('gameId');
+            // gameState.walletAddress = getCookie('walletAddress');
+
+            // if (!gameState.walletAddress || !gameState.gameId) {
+            //     showNotification('Missing game information. Redirecting to lobby...', 'error');
+            //     setTimeout(() => window.location.href = 'lobby.html', 2000);
+            //     return;
+            // }
+
             gameState.gameId = new URLSearchParams(window.location.search).get('gameId');
+
+            // First try cookie
+            gameState.walletAddress = getCookie('walletAddress');
+
+            // If cookie doesn't exist, try URL
+            if (!gameState.walletAddress) {
+                const walletFromUrl = new URLSearchParams(window.location.search).get('walletAddress');
+                if (walletFromUrl) {
+                    // Save to cookie (example: expires in 7 days)
+                    document.cookie = `walletAddress=${encodeURIComponent(walletFromUrl)}; path=/; max-age=${7 * 24 * 60 * 60}`;
+                    gameState.walletAddress = walletFromUrl;
+                }
+            }
 
             if (!gameState.walletAddress || !gameState.gameId) {
                 showNotification('Missing game information. Redirecting to lobby...', 'error');
                 setTimeout(() => window.location.href = 'lobby.html', 2000);
                 return;
             }
+
 
             initializeBoard();
             connectToGame();
